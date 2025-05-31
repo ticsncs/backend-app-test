@@ -1,0 +1,35 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+django-reverse-admin = "*"
+djangorestframework = "*"
+markdown = "*"
+django-filter = "*"
+django-cors-headers = "*"
+python-dateutil = "*"
+psycopg2-binary = "*"
+django-nested-admin = "*"
+django-image-cropping = "*"
+gunicorn = "*"
+easy-thumbnails = "*"
+django-colorfield = "*"
+django-import-export = "*"
+django-ckeditor = "*"
+reportlab = "*"
+suds = "*"
+environs = "*"
+boto3 = "*"
+django-storages = "*"
+xhtml2pdf = "*"
+xmltodict = "*"
+django-unfold = "*"
+
+[dev-packages]
+pylint = "*"
+
+[requires]
+python_version = "3.10"
