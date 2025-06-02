@@ -577,3 +577,23 @@ class MassPointsLoadSerializer(serializers.ModelSerializer):
             assign_date=timezone.now(),
         )
         return mass_points_load
+
+from rest_framework import serializers
+from django.core.mail import EmailMessage
+
+class SendMailRegisteredUserSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    subject = serializers.CharField()
+    message = serializers.CharField()
+
+    def send_email(self):
+        email = self.validated_data['email']
+        subject = self.validated_data['subject']
+        message = self.validated_data['message']
+
+        email_msg = EmailMessage(
+            subject=subject,
+            body=message,
+            to=[email],
+        )
+        email_msg.send()

@@ -14,13 +14,6 @@ enterprise/*
 # Backup files #
 *.bak
 
-firebase_creds/*.json
-apis/chat/utils.py
-
-#Keys and secrets
-echo "firebase_creds/*.json" >> .gitignore
-echo "apis/chat/utils.py" >> .gitignore
-
 # If you are using PyCharm #
 # User-specific stuff
 .idea/

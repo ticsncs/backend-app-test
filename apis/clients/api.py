@@ -24,6 +24,9 @@ from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet, ModelViewSet
 from django.db import transaction as db_transaction
+from django.utils.crypto import get_random_string
+from django.core.mail import send_mail
+from apps.clients.utils import enviar_correo_bienvenida
 
 from apps.appsettings.models import DynamicContent
 from apps.notifications.services import (
@@ -64,6 +67,7 @@ from apis.clients.serialize import (
     PaymentPromiseSerializer,
     WifiConnectionLogSerializer,
     MassPointsLoadSerializer,
+    SendMailRegisteredUserSerializer
 )
 from apps.clients.models import (
     WifiPoint,
@@ -887,7 +891,8 @@ class AuthenticateViewSetToken(ViewSet):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
 
-        # No cerramos sesión anterior: permitimos múltiples tokens
+        # No sobreescribir token si ya existe, de esta forma se evita que se cierre la sesión
+        # de otros dispositivos al iniciar sesión desde uno nuevo.
         token, created = Token.objects.get_or_create(user=user)
 
         user_data = UserProfileSerializer(user, context={"request": request}).data
@@ -900,7 +905,6 @@ class AuthenticateViewSetToken(ViewSet):
             },
             status=HTTP_201_CREATED if created else HTTP_200_OK,
         )
-
 
 class AuthenticateNettplusViewSet(ViewSet):
     permission_classes = [AllowAny]
@@ -1370,53 +1374,55 @@ class ContractUserView(APIView):
             if active_users_count >= contract.user_limit:
                 return Response(
                     {
-                        "error": "El límite de usuarios para este contrato ha sido alcanzado, te sugerimos contratar un plan superior para añadir más usuarios."
+                        "error": "El límite de usuarios para este contrato ha sido alcanzado, te sugerimos contratar un plan superior para añadir más usuarios."
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Crear el nuevo usuario
-            data = request.data
+            data = request.data.copy()  # hacer copia para modificar
             data["contract"] = contract.id
+
             email = data.get("email")
             username = data.get("username")
 
             if User.objects.filter(email=email).exists():
                 return Response(
-                    {
-                        "email": "El correo electrónico ya está registrado. Por favor, use otro."
-                    },
+                    {"email": "El correo electrónico ya está registrado. Por favor, use otro."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             if User.objects.filter(username=username).exists():
                 return Response(
-                    {
-                        "username": "El nombre de usuario ya está en uso. Intente con otro."
-                    },
+                    {"username": "El nombre de usuario ya está en uso. Intente con otro."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            # 1. Generar contraseña segura
+            generated_password = get_random_string(length=10)
+            data["password"] = generated_password  # la enviamos al serializer pero no desde el cliente
 
             serializer = UserProfileSerializer(data=data)
             if serializer.is_valid():
                 user = serializer.save()
-                user.set_password(data["password"])
+                user.set_password(generated_password)
                 user.save()
 
-                # Buscar usuario padre del contrato
-                parent_user = UserProfile.objects.filter(
-                    usercontract=contract, father=True
-                ).first()
+                print("Este es el usuario:", user)
 
+                # 2. Enviar correo con la contraseña generada
+                enviar_correo_bienvenida(user, email, generated_password)
+
+                print("Correo enviado a:", email)
+
+                # 3. Notificar al usuario padre
+                parent_user = UserProfile.objects.filter(usercontract=contract, father=True).first()
                 if parent_user:
-                    # Crear una notificación local en la base de datos
                     UserNotificationService.create_notification(
                         parent_user,
                         "Nuevo usuario hijo registrado",
                         f"El usuario {user.username} se ha registrado exitosamente bajo el contrato {contract.contract_id}.",
                     )
 
-                    # Buscar dispositivo FCM del usuario padre y enviar notificación push
                     parent_device = FCMDevice.objects.filter(user=parent_user).first()
                     if parent_device and parent_device.registration_id:
                         FirebaseNotificationService.send_firebase_notification(
@@ -1427,11 +1433,12 @@ class ContractUserView(APIView):
                         )
 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         except Contract.DoesNotExist:
-            return Response(
-                {"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        
 
     def delete(self, request, contract_id, user_id):
         try:
@@ -2033,3 +2040,16 @@ class MassPointsLoadView(APIView):
             {"message": "Registro creado y procesado correctamente!"},
             status=status.HTTP_201_CREATED,
         )
+
+
+#Clases extra
+class SendMailRegisteredUserViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    @action(detail=False, methods=['post'], url_path='send_email')
+    def send_email(self, request):
+        serializer = SendMailRegisteredUserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.send_email()
+            return Response({"message": "Email enviado correctamente!"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

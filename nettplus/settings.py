@@ -186,19 +186,16 @@ WSGI_APPLICATION = "nettplus.wsgi.application"
 # }
 
 DATABASES = {
-    #"default": {
-    #    "ENGINE": env("PG_ENGINE"),
-    #    "NAME": env("PG_DB"),
-    #    "USER": env("PG_USER"),
-    #    "PASSWORD": env("PG_PASSWORD"),
-    #    "HOST": env("PG_HOST"),
-    #    "PORT": env("PG_PORT"),
-    #}
-     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "bd_backend_app",
+        "USER": "postgres",
+        "PASSWORD": "ServerNCS011",  # <-- ¡Este valor parece correcto!
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -245,12 +242,21 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
+#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+#EMAIL_HOST = "smtp.gmail.com"
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = "lunajulces@gmail.com"
+#EMAIL_HOST_PASSWORD = "kszd tdek psme ttsr"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.nettplus.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "lunajulces@gmail.com"
-EMAIL_HOST_PASSWORD = "kszd tdek psme ttsr"
+EMAIL_HOST_USER = 'ticsncs@nettplus.net'
+EMAIL_HOST_PASSWORD = 'Adm1n1234'
+SITE_ID = 1  # Reemplaza 1 con el ID de tu sitio
+DEFAULT_FROM_EMAIL = 'ticsncs@nettplus.net'  # Reemplaza con tu dirección de correo
 
 # FIREBASe CONFIG
 # FIREBASE_APP = initialize_app()

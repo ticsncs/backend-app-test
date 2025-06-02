@@ -7,6 +7,7 @@ from apis.clients.api import (
     ServiceViewSet,
     ReferralViewSet,
     AuthenticateViewSet,
+    AuthenticateViewSetToken,
     SpeedHistoryViewSet,
     TransactionViewSet,
     HotspotAccountViewSet,
@@ -27,10 +28,10 @@ from apis.clients.api import (
     DeleteAccountViewSet,
     PaymentPromiseApiView,
     AuthenticateNettplusViewSet,
-    AuthenticateViewSetToken,
     TransferPointsViewSet,
     WifiConnectionLogViewSet,
     MassPointsLoadView,
+    SendMailRegisteredUserViewSet
 )
 from apps.clients.views import blank_page
 
@@ -56,10 +57,13 @@ urlpatterns = [
 ]
 # END ODOO URLS
 routers.register(r"auth", AuthenticateViewSet, basename="auth")
-routers.register(r"auth/v2",AuthenticateViewSetToken, basename="auth-token")
 routers.register(
     r"auth/nettplus", AuthenticateNettplusViewSet, basename="auth-nettplus"
 )
+routers.register(r"auth/v2", AuthenticateViewSetToken, basename="auth-v2")
+
+##URL DE CORREO
+#routers.register(r"sentemail", SendMailRegisteredUserViewSet, basename="sent-email")
 routers.register(r"wifipoints", WifiPointViewSet, basename="wifipoint")
 routers.register(r"sliderhome", SliderHomeViewSet, basename="sliderhome")
 routers.register(r"slidersecond", SliderSecondViewSet, basename="slidersecond")

@@ -1,4 +1,4 @@
-#from audioop import reverse
+from django.urls import reverse
 import json
 from django.db import models
 from django.conf import settings

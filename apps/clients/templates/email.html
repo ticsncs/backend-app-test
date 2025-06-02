@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bienvenido a Nettplus</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 m-0 p-0">
+    <div class="bg-white max-w-lg mx-auto my-10 p-8 rounded-xl shadow-lg">
+        <div class="text-center mb-6">
+            <img src="data:image/png;base64,{{ logo_base64 }}" alt="Nettplus Logo" class="w-32 mx-auto mb-2">
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">¡Bienvenido a Nettplus, {{ username }}!</h2>
+        <p class="text-gray-700 text-base mb-2">Estamos encantados de tenerte en nuestra familia, ahora formas parte de la aplicación nettplus.</p>
+        <p class="text-gray-700 text-base mb-2">Tu contraseña temporal de acceso es:</p>
+        <p class="font-semibold text-lg text-blue-700 mb-4">{{ password }}</p>
+        <p class="text-gray-700 text-base mb-6">Por favor, inicia sesión y cámbiala lo antes posible.</p>
+        <div class="text-center text-xs text-gray-400 mt-8">
+            © 2025 Nettplus. Todos los derechos reservados.
+        </div>
+    </div>
+</body>
+</html>
