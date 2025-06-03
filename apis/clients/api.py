@@ -1322,10 +1322,9 @@ class AllUsersContracts(APIView):
         """
         Obtiene todos los contratos asociados al correo electrónico proporcionado.
         """
-        print(f"Request to get contracts for email: {email}")
         try:
             user = User.objects.get(email=email)
-            contracts = Contract.objects.filter(userprofile__user=user)
+            contracts = Contract.objects.filter(userprofile__username=user)
 
             if not contracts.exists():
                 return Response(
@@ -1334,7 +1333,17 @@ class AllUsersContracts(APIView):
                 )
 
             serializer = ContractSerializer(contracts, many=True, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Agregar datos de usuario al resultado
+            user_data = UserProfileSerializer(user, context={"request": request}).data
+
+            return Response(
+                {
+                    "username": user_data.get("username"),
+                    "image": user_data.get("cropping_icon_url50x50"),
+                    "contracts": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except User.DoesNotExist:
             return Response(
