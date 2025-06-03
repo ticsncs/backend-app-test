@@ -1393,9 +1393,21 @@ class ContractUserView(APIView):
                 {"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND
             )
 
-    def post(self, request, contract_id):
+    def post(self, request):
         try:
+            email = request.data.get("email")
+            contract_id = request.data.get("contract_id")
+
+            if not email or not contract_id:
+                return Response(
+                    {"error": "Se requiere 'email' y 'contract_id' en el cuerpo de la solicitud."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Buscar contrato
             contract = Contract.objects.get(contract_id=contract_id)
+
+            # Verificar límite de usuarios activos
             active_users_count = UserProfile.objects.filter(
                 contract=contract, is_active=True, father=False
             ).count()
@@ -1403,32 +1415,28 @@ class ContractUserView(APIView):
             if active_users_count >= contract.user_limit:
                 return Response(
                     {
-                        "error": "El límite de usuarios para este contrato ha sido alcanzado, te sugerimos contratar un plan superior para añadir más usuarios."
+                        "error": "El límite de usuarios para este contrato ha sido alcanzado. Te sugerimos contratar un plan superior para añadir más usuarios."
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            data = request.data.copy()  # hacer copia para modificar
-            data["contract"] = contract.id
-
-            email = data.get("email")
-            username = data.get("username")
-
+            # Verificar si el email ya está registrado
             if User.objects.filter(email=email).exists():
                 return Response(
                     {"email": "El correo electrónico ya está registrado. Por favor, use otro."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            if User.objects.filter(username=username).exists():
-                return Response(
-                    {"username": "El nombre de usuario ya está en uso. Intente con otro."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # 1. Generar contraseña segura
+            # Generar contraseña segura
             generated_password = get_random_string(length=10)
-            data["password"] = generated_password  # la enviamos al serializer pero no desde el cliente
+
+            # Preparar datos para el serializer
+            data = {
+                "email": email,
+                "username": email,
+                "password": generated_password,
+                "contract": contract.id
+            }
 
             serializer = UserProfileSerializer(data=data)
             if serializer.is_valid():
@@ -1436,15 +1444,12 @@ class ContractUserView(APIView):
                 user.set_password(generated_password)
                 user.save()
 
-                print("Este es el usuario:", user)
-
-                # 2. Enviar correo con la contraseña generada
+                # ✅ SOLO ENVIAR EMAIL DESPUÉS DE GUARDAR EXITOSAMENTE
                 enviar_correo_bienvenida(user, email, generated_password)
+                print(f"Correo enviado a {email} con la contraseña generada.")
 
-                print("Correo enviado a:", email)
-
-                # 3. Notificar al usuario padre
-                parent_user = UserProfile.objects.filter(usercontract=contract, father=True).first()
+                # Notificar al usuario padre
+                parent_user = UserProfile.objects.filter(contract=contract, father=True).first()
                 if parent_user:
                     UserNotificationService.create_notification(
                         parent_user,
@@ -1461,100 +1466,104 @@ class ContractUserView(APIView):
                             data=None,
                         )
 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    {"message": "Usuario hijo agregado correctamente."},
+                    status=status.HTTP_201_CREATED,
+                )
 
+            # Si el serializer no es válido, NO se envía correo
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except Contract.DoesNotExist:
             return Response({"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND)
-        
 
-    def delete(self, request, contract_id, user_id):
-        try:
-            contract = Contract.objects.get(contract_id=contract_id)
-            user = UserProfile.objects.get(id=user_id, contract=contract)
 
-            # Verificar si es un usuario hijo (no padre)
-            if user.father:
+        def delete(self, request, contract_id, user_id):
+            try:
+                contract = Contract.objects.get(contract_id=contract_id)
+                user = UserProfile.objects.get(id=user_id, contract=contract)
+
+                # Verificar si es un usuario hijo (no padre)
+                if user.father:
+                    return Response(
+                        {"error": "No se puede eliminar al usuario padre."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Verificar si el usuario está activo antes de eliminarlo
+                if not user.is_active:
+                    return Response(
+                        {"error": "El usuario ya está inactivo."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Eliminar el usuario de la base de datos completamente
+                user.delete()
+
+                # Actualizar el número de usuarios hijos en el contrato
+                contract.son_number = UserProfile.objects.filter(
+                    contract=contract, father=False
+                ).count()
+                contract.save(update_fields=["son_number"])
+
                 return Response(
-                    {"error": "No se puede eliminar al usuario padre."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"message": "Usuario eliminado correctamente."},
+                    status=status.HTTP_200_OK,
                 )
 
-            # Verificar si el usuario está activo antes de eliminarlo
-            if not user.is_active:
+            except Contract.DoesNotExist:
                 return Response(
-                    {"error": "El usuario ya está inactivo."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND
+                )
+            except UserProfile.DoesNotExist:
+                return Response(
+                    {"error": "Usuario no encontrado o no pertenece a este contrato."},
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
-            # Eliminar el usuario de la base de datos completamente
-            user.delete()
+        def patch(self, request, contract_id):
+            try:
+                contract = Contract.objects.get(contract_id=contract_id)
+                serializer = ContractSerializer(
+                    contract, data=request.data, partial=True, context={"request": request}
+                )
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            except Contract.DoesNotExist:
+                return Response(
+                    {"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND
+                )
 
-            # Actualizar el número de usuarios hijos en el contrato
-            contract.son_number = UserProfile.objects.filter(
-                contract=contract, father=False
-            ).count()
-            contract.save(update_fields=["son_number"])
+        def put(self, request, contract_id, user_id):
+            """
+            Actualizar completamente los campos del perfil de usuario
+            """
+            try:
+                # Verificar que el contrato existe
+                contract = Contract.objects.get(contract_id=contract_id)
 
-            return Response(
-                {"message": "Usuario eliminado correctamente."},
-                status=status.HTTP_200_OK,
-            )
+                # Verificar que el usuario pertenece al contrato
+                user = UserProfile.objects.get(id=user_id, contract=contract)
 
-        except Contract.DoesNotExist:
-            return Response(
-                {"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND
-            )
-        except UserProfile.DoesNotExist:
-            return Response(
-                {"error": "Usuario no encontrado o no pertenece a este contrato."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-    def patch(self, request, contract_id):
-        try:
-            contract = Contract.objects.get(contract_id=contract_id)
-            serializer = ContractSerializer(
-                contract, data=request.data, partial=True, context={"request": request}
-            )
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Contract.DoesNotExist:
-            return Response(
-                {"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-    def put(self, request, contract_id, user_id):
-        """
-        Actualizar completamente los campos del perfil de usuario
-        """
-        try:
-            # Verificar que el contrato existe
-            contract = Contract.objects.get(contract_id=contract_id)
-
-            # Verificar que el usuario pertenece al contrato
-            user = UserProfile.objects.get(id=user_id, contract=contract)
-
-            # Serializador para validar y actualizar completamente los datos
-            serializer = UserProfileSerializer(
-                user, data=request.data
-            )  # Sin partial=True para forzar actualización completa
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Contract.DoesNotExist:
-            return Response(
-                {"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND
-            )
-        except UserProfile.DoesNotExist:
-            return Response(
-                {"error": "Usuario no encontrado o no pertenece a este contrato."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+                # Serializador para validar y actualizar completamente los datos
+                serializer = UserProfileSerializer(
+                    user, data=request.data
+                )  # Sin partial=True para forzar actualización completa
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            except Contract.DoesNotExist:
+                return Response(
+                    {"error": "Contrato no encontrado."}, status=status.HTTP_404_NOT_FOUND
+                )
+            except UserProfile.DoesNotExist:
+                return Response(
+                    {"error": "Usuario no encontrado o no pertenece a este contrato."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
 
 class PuntosGanadosViewSet(ModelViewSet):

@@ -10,8 +10,13 @@ urlpatterns = [
     path("chat/", include("apis.chat.urls")),
     path("logs/", include("apis.logs.urls")),
     path("contracts/v2/<str:email>/", AllUsersContracts.as_view(), name="all-contracts"),
-    path("contracts/<str:contract_id>/users/", ContractUserView.as_view(),
+    path("contracts/<str:contract_id>/users/", ContractUserView.as_view()),
+    #Crear hijo de la tienda
+    path("contracts/users/", ContractUserView.as_view(),
          name="contract-users"),
+     #Obtener usuarios de un contrato
+     path("contracts/<str:contract_id>/users/",
+           ContractUserView.as_view(), name="get-users"),
     path("contracts/<str:contract_id>/users/<int:user_id>/",
          ContractUserView.as_view(), name="delete-user"),
     path("contracts/<str:contract_id>/users/<int:user_id>/edit/",

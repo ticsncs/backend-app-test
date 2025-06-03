@@ -1,24 +1,95 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Bienvenido a Nettplus</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido a Nettplus</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container {
+        width: 95% !important;
+        padding: 20px !important;
+      }
+      .logo {
+        width: 100px !important;
+      }
+      .title {
+        font-size: 20px !important;
+      }
+      .password {
+        font-size: 18px !important;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 m-0 p-0">
-    <div class="bg-white max-w-lg mx-auto my-10 p-8 rounded-xl shadow-lg">
-        <div class="text-center mb-6">
-            <img src="data:image/png;base64,{{ logo_base64 }}" alt="Nettplus Logo" class="w-32 mx-auto mb-2">
+<body style="margin: 0; padding: 0;  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-height: 100vh;">
+  
+  <div style="padding: 40px 20px;">
+    <div class="container" style="max-width: 600px; margin: 0 auto;  border-radius: 16px; box-shadow: #6b7280; overflow: hidden;">
+      
+      <!-- Contenido principal -->
+      <div style="padding: 40px 30px;">
+        
+        <!-- Título de bienvenida -->
+        <h1 class="title" style="margin: 0 0 20px 0; color: #111827; font-size: 28px; font-weight: 700; text-align: center; line-height: 1.2;">
+          ¡Bienvenido a Nettplus!
+        </h1>
+        
+        <!-- Saludo personalizado -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <span style="display: inline-block;  color: rgb(8, 8, 8); padding: 8px 20px; border-radius: 25px; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; box-shadow: #6b7280;">
+            Hola, {{ username }}
+          </span>
         </div>
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">¡Bienvenido a Nettplus, {{ username }}!</h2>
-        <p class="text-gray-700 text-base mb-2">Estamos encantados de tenerte en nuestra familia, ahora formas parte de la aplicación nettplus.</p>
-        <p class="text-gray-700 text-base mb-2">Tu contraseña temporal de acceso es:</p>
-        <p class="font-semibold text-lg text-blue-700 mb-4">{{ password }}</p>
-        <p class="text-gray-700 text-base mb-6">Por favor, inicia sesión y cámbiala lo antes posible.</p>
-        <div class="text-center text-xs text-gray-400 mt-8">
+        
+        <!-- Mensaje de bienvenida -->
+        <p style="color: #4b5563; font-size: 16px; line-height: 1.7; text-align: center; margin: 0 0 30px 0;">
+          Estamos encantados de tenerte en nuestra familia. Has dado el primer paso para formar parte de una experiencia única con Nettplus.
+        </p>
+        
+        <!-- Sección de contraseña -->
+        <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 25px; margin: 30px 0; border-left: 4px solid #2563eb;">
+          <p style="color: #374151; font-size: 16px; margin: 0 0 15px 0; text-align: center; font-weight: 600;">
+            🔐 Tu contraseña temporal de acceso:
+          </p>
+          <div style="text-align: center; background: white; border-radius: 8px; padding: 15px; border: 2px dashed #2563eb;">
+            <span class="password" style="font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold; color: #1d4ed8; letter-spacing: 2px;">
+              {{ password }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Instrucciones de seguridad -->
+        <div style="background: #fef3c7; border-radius: 8px; padding: 20px; margin: 25px 0; border-left: 4px solid #f59e0b;">
+          <p style="color: #92400e; font-size: 14px; margin: 0; text-align: center; font-weight: 500;">
+            ⚠️ <strong>Importante:</strong> Por tu seguridad, inicia sesión y cambia esta contraseña lo antes posible.
+          </p>
+        </div>
+        
+        
+        <!-- Mensaje adicional -->
+        <p style="color: #6b7280; font-size: 14px; line-height: 1.6; text-align: center; margin: 30px 0 0 0;">
+          Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos. Estamos aquí para apoyarte en cada paso del camino.
+        </p>
+        
+      </div>
+      
+      <!-- Footer -->
+      <div style="background: #f9fafb; padding: 25px 30px; border-top: 1px solid #e5e7eb;">
+        <div style="text-align: center;">
+          <p style="color: #9ca3af; font-size: 12px; margin: 0 0 10px 0;">
             © 2025 Nettplus. Todos los derechos reservados.
+          </p>
+          <div style="margin-top: 15px;">
+            <a href="#" style="color: #6b7280; text-decoration: none; font-size: 12px; margin: 0 15px;">Política de Privacidad</a>
+            <a href="#" style="color: #6b7280; text-decoration: none; font-size: 12px; margin: 0 15px;">Términos de Uso</a>
+            <a href="#" style="color: #6b7280; text-decoration: none; font-size: 12px; margin: 0 15px;">Soporte</a>
+          </div>
         </div>
+      </div>
+      
     </div>
+  </div>
+  
 </body>
 </html>

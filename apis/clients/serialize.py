@@ -140,7 +140,10 @@ class UserProfileSerializerLite(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(
-        many=True, slug_field="name", queryset=Group.objects.all()
+        many=True,
+        slug_field="name",
+        queryset=Group.objects.all(),
+        required=False,
     )
     contract_id = serializers.CharField(source="contract.contract_id", read_only=True)
     contracts = serializers.SerializerMethodField()

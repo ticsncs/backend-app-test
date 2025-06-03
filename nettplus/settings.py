@@ -191,7 +191,7 @@ DATABASES = {
         "NAME": "nettplus",
         "USER": "tics_ncs",
         "PASSWORD": "Server011NCS",  # <-- ¡Este valor parece correcto!
-        "HOST": "localhost",
+        "HOST": "190.96.102.25",
         "PORT": "5432",
     }
 }
