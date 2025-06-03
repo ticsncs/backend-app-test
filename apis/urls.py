@@ -2,13 +2,14 @@
 from django.urls import include, path
 
 from apis.clients.api import ContractUserView, PasswordRecoveryView, \
-    ChangePasswordView, ChangePasswordNettplusView
+    ChangePasswordView, ChangePasswordNettplusView,AllUsersContracts
 
 urlpatterns = [
     path("clients/", include("apis.clients.urls")),
     path("store/", include("apis.store.urls")),
     path("chat/", include("apis.chat.urls")),
     path("logs/", include("apis.logs.urls")),
+    path("contracts/v2/<str:email>/", AllUsersContracts.as_view(), name="all-contracts"),
     path("contracts/<str:contract_id>/users/", ContractUserView.as_view(),
          name="contract-users"),
     path("contracts/<str:contract_id>/users/<int:user_id>/",

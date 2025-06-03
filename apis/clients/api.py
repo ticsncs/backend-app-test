@@ -1312,6 +1312,35 @@ class UserProfileViewSet(ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+class AllUsersContracts(APIView):
+    """
+    Endpoint para obtener todos los contratos de un usuario por su correo electrónico.
+    """
+
+    permission_classes = [IsAuthenticated]
+    def get(self, request, email):
+        """
+        Obtiene todos los contratos asociados al correo electrónico proporcionado.
+        """
+        print(f"Request to get contracts for email: {email}")
+        try:
+            user = User.objects.get(email=email)
+            contracts = Contract.objects.filter(userprofile__user=user)
+
+            if not contracts.exists():
+                return Response(
+                    {"error": "No se encontraron contratos para este usuario."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            serializer = ContractSerializer(contracts, many=True, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND
+            )
+
 
 class ContractUserView(APIView):
 

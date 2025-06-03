@@ -188,9 +188,9 @@ WSGI_APPLICATION = "nettplus.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "bd_backend_app",
-        "USER": "postgres",
-        "PASSWORD": "ServerNCS011",  # <-- ¡Este valor parece correcto!
+        "NAME": "nettplus",
+        "USER": "tics_ncs",
+        "PASSWORD": "Server011NCS",  # <-- ¡Este valor parece correcto!
         "HOST": "localhost",
         "PORT": "5432",
     }
