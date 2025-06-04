@@ -156,7 +156,7 @@ class SimpleContractSerializer(serializers.ModelSerializer):
 
     def get_users(self, obj):
         # Solo usuarios activos asociados al contrato
-        users = UserProfile.objects.filter(contract=obj, is_active=True)
+        users = UserProfile.objects.filter(contract=obj)
         return SimpleUserProfileSerializer(users, many=True, context=self.context).data
 
 #  Ajuste para el serializador SimpleUserProfileSerializer
