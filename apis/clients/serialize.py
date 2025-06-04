@@ -169,10 +169,11 @@ class SimpleUserProfileSerializer(serializers.ModelSerializer):
             "email",
             "first_name",
             "points",
-            #"cropping_icon_url50x50",  # Asegúrate de que este método/propiedad exista en el modelo
+            "image_field",
             "is_active",
             "father",
             "contract_id",  # Si es una propiedad serializada o calculada
+            "date_joined"
         ]
 
 
