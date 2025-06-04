@@ -4,8 +4,6 @@
 *.pyc
 __pycache__
 #db.sqlite3
-#media
-media/*
 # Migrations
 **/migrations/**
 !**/migrations
@@ -22,8 +20,6 @@ enterprise/*
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
-staticfiles/*
-static/*
 # AWS User-specific
 .idea/**/aws.xml
 
@@ -149,8 +145,6 @@ signatures/
 
 .DS_Store
 /.DS_Store
-media/.DS_Store
-media/.DS_Store
 
 /init.sql
 /.volumes/
