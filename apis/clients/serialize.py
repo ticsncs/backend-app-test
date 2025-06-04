@@ -168,6 +168,7 @@ class SimpleUserProfileSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "first_name",
+            "cellphone",
             "points",
             "image_field",
             "is_active",
