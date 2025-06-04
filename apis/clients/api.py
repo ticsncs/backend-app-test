@@ -37,12 +37,12 @@ from apps.notifications.services import (
 User = get_user_model()
 
 from apis.clients.serialize import (AuthTokenSerializer, ContractSerializer,
-    ContractStatusSerializer, DeleteAccountSerializers, HotspotAccountSerializer,
-    InvoiceSerializer, MassPointsLoadSerializer, PaymentMethodSerializer, PaymentPromiseSerializer,
-    PuntosGanadosSerializer, RatingQuestionSerializer, ReferralSerializer,
-    RegisterTicketSerializer, SendMailRegisteredUserSerializer, ServiceSerializer,
-    SimpleContractSerializer, SlideActionSerializer, SliderSecondSerializer, SliderSerializer,
-    SpeedHistorySerializer, SupportRatingRequestSerializer, SupportSerializer,
+    ContractStatusSerializer, DeleteAccountSerializers, FatherUserSerializer,
+    HotspotAccountSerializer, InvoiceSerializer, MassPointsLoadSerializer, PaymentMethodSerializer,
+    PaymentPromiseSerializer, PuntosGanadosSerializer, RatingQuestionSerializer,
+    ReferralSerializer, RegisterTicketSerializer, SendMailRegisteredUserSerializer,
+    ServiceSerializer, SimpleContractSerializer, SlideActionSerializer, SliderSecondSerializer,
+    SliderSerializer, SpeedHistorySerializer, SupportRatingRequestSerializer, SupportSerializer,
     TicketSearchSerializer, TransactionRollbackSerializer, TransactionSerializer,
     TransferPointsSerializer, UserGroupSerializer, UserProfileSerializer,
     UserProfileSerializerLite, WifiConnectionLogSerializer, WifiPointSerializer,
@@ -70,6 +70,7 @@ from apps.clients.models import (
     PointsCategory,
 )
 from auditlog.models import LogEntry
+from apis.clients.api import User
 
 # ODOO CLASSES
 class ContractStatusViewSet(APIView):
@@ -1348,6 +1349,25 @@ class AllUsersContracts(APIView):
             return Response(
                 {"error": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+class GetFatherUserByContract(APIView):
+    permission_classes = [IsAuthenticated]  # Opcional: usa AllowAny si es pública
+
+    def get(self, request, contract_id):
+        try:
+            # Buscar contrato
+            contract = Contract.objects.get(contract_id=contract_id)
+            
+        except Contract.DoesNotExist:
+            return Response(
+                {"error": "Contrato no encontrado."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        
+
+        return Response(contract.userprofile.email, status=status.HTTP_200_OK)
 
 
 class ContractUserView(APIView):

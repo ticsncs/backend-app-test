@@ -126,6 +126,18 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class FatherUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "cellphone",
+            "points",
+        ]
+
 class SimpleContractSerializer(serializers.ModelSerializer):
     users = serializers.SerializerMethodField()
 
