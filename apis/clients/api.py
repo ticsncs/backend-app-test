@@ -1363,9 +1363,7 @@ class GetFatherUserByContract(APIView):
             return Response(
                 {"error": "Contrato no encontrado."},
                 status=status.HTTP_404_NOT_FOUND
-            )
-
-        
+            )        
 
         return Response(contract.userprofile.email, status=status.HTTP_200_OK)
 
