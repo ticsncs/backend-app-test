@@ -36,39 +36,17 @@ from apps.notifications.services import (
 
 User = get_user_model()
 
-from apis.clients.serialize import (
-    UserGroupSerializer,
-    WifiPointSerializer,
-    WifiPointSerializerAll,
-    ServiceSerializer,
-    ReferralSerializer,
-    AuthTokenSerializer,
-    SpeedHistorySerializer,
-    TransactionSerializer,
-    HotspotAccountSerializer,
-    UserProfileSerializer,
-    ContractSerializer,
-    SliderSerializer,
-    SliderSecondSerializer,
-    PaymentMethodSerializer,
-    SupportSerializer,
-    PuntosGanadosSerializer,
-    RegisterTicketSerializer,
-    InvoiceSerializer,
-    TicketSearchSerializer,
-    SlideActionSerializer,
-    TransferPointsSerializer,
-    RatingQuestionSerializer,
-    SupportRatingRequestSerializer,
-    TransactionRollbackSerializer,
-    ContractStatusSerializer,
-    DeleteAccountSerializers,
-    UserProfileSerializerLite,
-    PaymentPromiseSerializer,
-    WifiConnectionLogSerializer,
-    MassPointsLoadSerializer,
-    SendMailRegisteredUserSerializer
-)
+from apis.clients.serialize import (AuthTokenSerializer, ContractSerializer,
+    ContractStatusSerializer, DeleteAccountSerializers, HotspotAccountSerializer,
+    InvoiceSerializer, MassPointsLoadSerializer, PaymentMethodSerializer, PaymentPromiseSerializer,
+    PuntosGanadosSerializer, RatingQuestionSerializer, ReferralSerializer,
+    RegisterTicketSerializer, SendMailRegisteredUserSerializer, ServiceSerializer,
+    SimpleContractSerializer, SlideActionSerializer, SliderSecondSerializer, SliderSerializer,
+    SpeedHistorySerializer, SupportRatingRequestSerializer, SupportSerializer,
+    TicketSearchSerializer, TransactionRollbackSerializer, TransactionSerializer,
+    TransferPointsSerializer, UserGroupSerializer, UserProfileSerializer,
+    UserProfileSerializerLite, WifiConnectionLogSerializer, WifiPointSerializer,
+    WifiPointSerializerAll)
 from apps.clients.models import (
     WifiPoint,
     Service,
@@ -91,7 +69,7 @@ from apps.clients.models import (
     PointsByPlanCategory,
     PointsCategory,
 )
-
+from auditlog.models import LogEntry
 
 # ODOO CLASSES
 class ContractStatusViewSet(APIView):
@@ -1332,15 +1310,36 @@ class AllUsersContracts(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            serializer = ContractSerializer(contracts, many=True, context={"request": request})
+            serializer = SimpleContractSerializer(contracts, many=True)
             # Agregar datos de usuario al resultado
             user_data = UserProfileSerializer(user, context={"request": request}).data
 
+            #saco todos los son_number de user_data y los sumo
+            total_son_avaible = sum(
+                contract.son_number for contract in contracts
+            )
+
+            #saco todos los son_number de user_data y los sumo
+            total_son_limit = sum(
+                contract.user_limit for contract in contracts
+            )
+
+            #total de puntos de los usuarios hijos y que esten activos
+            total_points = sum(
+                user.points for user in UserProfile.objects.filter(
+                    contract__in=contracts, is_active=True, father=False
+                )
+            ) + user.points
+
+
             return Response(
                 {
-                    "username": user_data.get("username"),
-                    "image": user_data.get("cropping_icon_url50x50"),
+                    "username": user_data.get("email"),
+                    "total_son_limit": total_son_limit,
+                    "total_son_avaible": total_son_avaible,
+                    "total_points_family": total_points,
                     "contracts": serializer.data,
+           
                 },
                 status=status.HTTP_200_OK,
             )
@@ -1361,7 +1360,6 @@ class ContractUserView(APIView):
     def perform_update(self, serializer):
         instance = serializer.save()
 
-        from auditlog.models import LogEntry
 
         LogEntry.objects.filter(
             object_id=instance.id, action=LogEntry.Action.UPDATE

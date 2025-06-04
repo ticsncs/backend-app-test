@@ -126,6 +126,44 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class SimpleContractSerializer(serializers.ModelSerializer):
+    users = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Contract
+        fields = [
+            "identification",
+            "telephone",
+            "email",
+            "contract_id",
+            "productInternet",
+            "user_limit",
+            "son_number",
+            "users",
+        ]
+
+    def get_users(self, obj):
+        # Solo usuarios activos asociados al contrato
+        users = UserProfile.objects.filter(contract=obj, is_active=True)
+        return SimpleUserProfileSerializer(users, many=True, context=self.context).data
+
+#  Ajuste para el serializador SimpleUserProfileSerializer
+class SimpleUserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "points",
+            #"cropping_icon_url50x50",  # Asegúrate de que este método/propiedad exista en el modelo
+            "is_active",
+            "father",
+            "contract_id",  # Si es una propiedad serializada o calculada
+        ]
+
+
 class UserProfileSerializerLite(serializers.ModelSerializer):
     unread_notifications_count = serializers.SerializerMethodField()
 
