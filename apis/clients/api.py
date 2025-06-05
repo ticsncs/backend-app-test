@@ -2030,6 +2030,29 @@ class DeleteAccountViewSet(viewsets.ViewSet):
                 )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+    #Este metodo permite el cambio de estados a dos niveles, primero desactiva el usuario y luego lo activa
+    @action(detail=False, methods=["patch"], url_path="enable")
+    def changue_status_user(self, request):
+        serializer = DeleteAccountSerializers(data=request.data)
+        if serializer.is_valid():
+            user_id = serializer.validated_data.get("id")
+            try:
+                user = UserProfile.objects.get(id=user_id)
+                user.is_active = not user.is_active  # Cambia el estado activo/inactivo
+                user.save()
+                status_message = "activado" if user.is_active else "desactivado"
+                return Response(
+                    {"message": f"Usuario {status_message} correctamente"},
+                    status=status.HTTP_200_OK,
+                )
+            except (UserProfile.DoesNotExist, ValidationError):
+                return Response(
+                    {"error": "El usuario no existe o el ID no es válido"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
     @action(detail=False, methods=["delete"], url_path="delete")
     def delete_user(self, request):
         serializer = DeleteAccountSerializers(data=request.data)
