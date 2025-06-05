@@ -4,6 +4,8 @@ from firebase_admin import messaging, get_app
 
 
 class FirebaseNotificationService:
+    print(">>> Firebase apps cargadas:", list(firebase_admin._apps.keys()))
+
     @classmethod
     def send_firebase_notification(cls, target, title, body, data=None):
         try:

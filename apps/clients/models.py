@@ -1293,15 +1293,20 @@ class MassPointsLoad(models.Model):
 
         # Enviar notificación push
         device = user.fcmdevice_set.first()
+        print(f"Dispositivo encontrado: {device}")
         if device and device.registration_id:
             try:
-                FirebaseNotificationService.send_firebase_notification(
+                test = FirebaseNotificationService.send_firebase_notification(
                     device.registration_id,
                     "Puntos acreditados",
                     message,
                     data=None,
                 )
+                print(f"Notificación enviada: {test}")
+                print(f"Notificación enviada a {device.registration_id}")
+
             except Exception as e:
+                print(f"Error al enviar notificación a {device.registration_id}:")
                 print(e)
 
     def process_points(self):
