@@ -1471,7 +1471,7 @@ class ContractUserView(APIView):
 
                 # ✅ SOLO ENVIAR EMAIL DESPUÉS DE GUARDAR EXITOSAMENTE
                 enviar_correo_bienvenida(user, email, generated_password)
-                print(f"Correo enviado a {email} con la contraseña generada.")
+                print(f"Correo enviado a {email} con la contraseña generada ahora.")
 
                 # Notificar al usuario padre
                 parent_user = UserProfile.objects.filter(contract=contract, father=True).first()
