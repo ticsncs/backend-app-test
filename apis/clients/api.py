@@ -1204,7 +1204,7 @@ class PasswordRecoveryView(APIView):
                     f"Atentamente,\n"
                     f"El equipo de soporte de Nettplus."
                 ),
-                from_email="noreply@tu_dominio.com",
+                from_email="ticsncs@nettplus.net",
                 recipient_list=[email],
             )
 
