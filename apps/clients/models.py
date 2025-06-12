@@ -45,13 +45,25 @@ class InternetPlan(models.Model):
     user_limit = models.PositiveIntegerField(
         default=0, verbose_name="Límite de Usuarios Hijos"
     )
-
+    speed = models.CharField(
+        max_length=20, default=0
+    )
+    wifi_accounts = models.PositiveBigIntegerField(
+        default=0
+    )
     class Meta:
         verbose_name = "Plan de Internet"
         verbose_name_plural = "Planes de Internet"
 
+    def generate_name_speed(self):
+        name_speed = f"{self.name} {self.speed} MBPS"
+        return name_speed
+
     def __str__(self):
-        return f"{self.name} ({self.user_limit} usuarios hijos)"
+        return self.generate_name_speed()
+    
+  
+
 
 
 class Contract(models.Model):

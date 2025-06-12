@@ -125,6 +125,21 @@ class ContractSerializer(serializers.ModelSerializer):
         model = Contract
         fields = "__all__"
 
+class SimpleContractSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = [
+            "contract_id",
+            "addressComplete",
+            "email",
+            "geolatitude",
+            "geolongitude",
+            "name",
+            "planInternet",
+            "productInternet",
+            "user_limit",
+        ]
+
 
 class FatherUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -210,12 +225,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     cropping_icon_url300x300 = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
     privacityandterms = serializers.BooleanField(required=False, default=False)
-    hotspot_account = serializers.ChoiceField(
-        choices=[('active', 'Active'), ('inactive', 'Inactive'), ('pending', 'Pending')],
-        default='inactive',
-        required=False
-    )
-    time_available = serializers.SerializerMethodField()
+    
 
     class Meta:
         model = UserProfile
@@ -249,10 +259,53 @@ class UserProfileSerializer(serializers.ModelSerializer):
         contracts = Contract.objects.filter(userprofile=obj)
         return ContractSerializer(contracts, many=True).data
     
-    #Calcular tiempo disponible por cuenta
-    def get_time_available(self, obj):
-        return 45
+    
+class SimpleUserProfileSerializer(serializers.ModelSerializer):
+    contract_id = serializers.CharField(source="contract.contract_id", read_only=True)
+    contracts = serializers.SerializerMethodField()
+    birth_date = serializers.DateField(
+        format="%d/%m/%Y", input_formats=["%d/%m/%Y"], required=False, allow_null=True
+    )
+    email = serializers.CharField(source="contract.email", read_only=True)
 
+    points = serializers.IntegerField(required=False, allow_null=True, default=0)
+    cropping_icon_url50x50 = serializers.SerializerMethodField()
+    privacityandterms = serializers.BooleanField(required=False, default=False)
+    typePlanInternet = serializers.CharField(source="contract.planInternet", read_only=True)
+    
+
+    class Meta:
+        model = UserProfile
+        exclude = ("password",)
+
+    def get_user_permissions(self, obj):
+        return obj.get_all_permissions()
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["contract_id"] = (
+            instance.contract.contract_id if instance.contract else None
+        )
+        return representation
+
+    def get_cropping_icon_url50x50(self, obj):
+        request = self.context.get("request")
+        cropped_url = obj.get_cropped_url50x50()
+        if cropped_url and request:
+            return request.build_absolute_uri(cropped_url)
+        return cropped_url
+
+    def get_cropping_icon_url300x300(self, obj):
+        request = self.context.get("request")
+        cropped_url = obj.get_cropped_url300x300()
+        if cropped_url and request:
+            return request.build_absolute_uri(cropped_url)
+        return cropped_url
+
+    def get_contracts(self, obj):
+        contracts = Contract.objects.filter(userprofile=obj)
+        return SimpleContractSerializer(contracts, many=True).data
+   
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:

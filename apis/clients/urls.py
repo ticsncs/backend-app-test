@@ -31,7 +31,8 @@ from apis.clients.api import (
     TransferPointsViewSet,
     WifiConnectionLogViewSet,
     MassPointsLoadView,
-    SendMailRegisteredUserViewSet
+    SimpleAuthenticateView
+
 )
 from apps.clients.views import blank_page
 
@@ -56,11 +57,13 @@ urlpatterns = [
     path("masspointsload/", MassPointsLoadView.as_view(), name="mass_points_load"),
 ]
 # END ODOO URLS
-routers.register(r"auth", AuthenticateViewSet, basename="auth")
+routers.register(r"auth", SimpleAuthenticateView, basename="auth")
 routers.register(
     r"auth/nettplus", AuthenticateNettplusViewSet, basename="auth-nettplus"
 )
 routers.register(r"auth/v2", AuthenticateViewSetToken, basename="auth-v2")
+
+
 
 ##URL DE CORREO
 #routers.register(r"sentemail", SendMailRegisteredUserViewSet, basename="sent-email")

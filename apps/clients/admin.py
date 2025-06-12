@@ -48,7 +48,7 @@ admin.site.index_title = "Administración de Nettplus"
 @admin.register(InternetPlan)
 class InternetPlanAdmin(ModelAdmin, ImportExportModelAdmin):
     search_fields = ("name",)
-    list_display = ("name", "user_limit")
+    list_display = ("name", "user_limit", "speed", "wifi_accounts")
     list_filter = ("name",)
 
 

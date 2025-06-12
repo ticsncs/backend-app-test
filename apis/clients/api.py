@@ -46,7 +46,7 @@ from apis.clients.serialize import (AuthTokenSerializer, ContractSerializer,
     TicketSearchSerializer, TransactionRollbackSerializer, TransactionSerializer,
     TransferPointsSerializer, UserGroupSerializer, UserProfileSerializer,
     UserProfileSerializerLite, WifiConnectionLogSerializer, WifiPointSerializer,
-    WifiPointSerializerAll)
+    WifiPointSerializerAll, SimpleUserProfileSerializer)
 from apps.clients.models import (
     WifiPoint,
     Service,
@@ -781,6 +781,7 @@ class AuthenticateViewSet(ViewSet):
             user_data = UserProfileSerializer(user, context={"request": request}).data
             odoo_data = self.login_into_erp(user_data)
             user_data = self.enrich_contracts_with_odoo_data(user_data, odoo_data)
+            print(user)
             return Response(
                 {
                     "token": token.key,
@@ -884,6 +885,107 @@ class AuthenticateViewSetToken(ViewSet):
             },
             status=HTTP_201_CREATED if created else HTTP_200_OK,
         )
+
+
+class SimpleAuthenticateView(ViewSet):
+    print("Metodo simple")
+    permission_classes = [AllowAny]
+    serializer_class = AuthTokenSerializer
+
+    def create(self, request):
+        serializer = AuthTokenSerializer(
+            data=request.data, context={"request": request}
+        )
+
+        serializer.is_valid(raise_exception=True)
+        current_registration_id = serializer.data.pop("registration_id", None)
+        user = serializer.validated_data["user"]
+        close_existing = request.data.get("close_existing", False)
+        token, created = Token.objects.get_or_create(user=user)
+
+        # First-time login
+        if created:
+            user_data = SimpleUserProfileSerializer(user, context={"request": request}).data
+            odoo_data = self.login_into_erp(user_data)
+            user_data = self.enrich_contracts_with_odoo_data(user_data, odoo_data)
+            print(user)
+            return Response(
+                {
+                    "token": token.key,
+                    "unread_notifications": user.get_unread_notifications(),
+                    "user": user_data,
+                },
+                status=HTTP_201_CREATED,
+            )
+
+        # Close existing session and create new token
+        if not created and close_existing:
+            # enviar notificacion al dispisitivo an terior
+            user_fcm = FCMDevice.objects.filter(user=user)
+            register_ = user_fcm.filter(registration_id=current_registration_id).first()
+            old_id = user_fcm.exclude(registration_id=current_registration_id).first()
+            if not register_ and old_id:
+                FirebaseNotificationService.send_firebase_notification(
+                    old_id.registration_id,
+                    title="🚨Has cerrado sesión 🚨",
+                    body="Hemos detectado un cierre de sesión en tu cuenta. Si no fuiste tú, por favor revisa tu configuración de seguridad.",
+                    data=None,
+                )
+                old_id.delete()
+
+            token.delete()
+            new_token = Token.objects.create(user=user)
+            user_data = SimpleUserProfileSerializer(user, context={"request": request}).data
+            odoo_data = self.login_into_erp(user_data)
+            user_data = self.enrich_contracts_with_odoo_data(user_data, odoo_data)
+
+            return Response(
+                {
+                    "token": new_token.key,
+                    "unread_notifications": user.get_unread_notifications(),
+                    "user": user_data,
+                },
+                status=HTTP_201_CREATED,
+            )
+
+    def login_into_erp(self, user_data):
+        try:
+            contract = Contract.objects.filter(
+                userprofile__username=user_data["username"]
+            )
+            url = "https://erp.nettplus.net/app/login"
+            if contract.exists():
+                data = {
+                    "password": contract.first().identification,
+                    "username": contract.first().email,
+                }
+                response = requests.post(url, json=data)
+                if response.status_code == 200:
+                    return response.json()
+            return {}
+        except requests.exceptions.RequestException:
+            return {}
+
+    def enrich_contracts_with_odoo_data(self, user_data, odoo_data):
+        contracts = user_data.get("contracts", [])
+        odoo_contracts = []
+
+        # Flatten Odoo contracts
+        for odoo_item in odoo_data:
+            odoo_contracts.extend(odoo_item.get("contratos", []))
+
+        # Create a lookup dictionary for Odoo contracts by name
+        odoo_contracts_dict = {
+            contract["name"]: contract for contract in odoo_contracts
+        }
+
+        # Enrich each contract in user_data with corresponding Odoo details
+        for contract in contracts:
+            contract_id = contract.get("contract_id")
+            contract["odoo_details"] = odoo_contracts_dict.get(contract_id, None)
+
+        user_data["contracts"] = contracts
+        return user_data
 
 class AuthenticateNettplusViewSet(ViewSet):
     permission_classes = [AllowAny]
