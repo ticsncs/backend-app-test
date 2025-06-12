@@ -1157,7 +1157,7 @@ class ChangePasswordNettplusView(APIView):
                 "Atentamente,\n"
                 "El equipo de soporte."
             ),
-            from_email="noreply@tu_dominio.com",
+            from_email="ticsncs@nettplus.net",
             recipient_list=[user.email],
         )
 

@@ -122,6 +122,7 @@ class UserProfileAdmin(
             {
                 "fields": (
                     "first_name",
+                    "last_name",
                     "cedula",
                     "birth_date",
                     "points",
