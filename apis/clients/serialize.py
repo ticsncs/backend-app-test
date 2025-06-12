@@ -126,6 +126,8 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class SimpleContractSerializer(serializers.ModelSerializer):
+    
+    planInternet = serializers.CharField(source="planInternet.__str__", read_only=True)
     class Meta:
         model = Contract
         fields = [
@@ -140,6 +142,10 @@ class SimpleContractSerializer(serializers.ModelSerializer):
             "user_limit",
         ]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        print("✅ Serializer ejecutado para:", instance.contract_id)
+        return data
 
 class FatherUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -153,26 +159,6 @@ class FatherUserSerializer(serializers.ModelSerializer):
             "points",
         ]
 
-class SimpleContractSerializer(serializers.ModelSerializer):
-    users = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Contract
-        fields = [
-            "identification",
-            "telephone",
-            "email",
-            "contract_id",
-            "productInternet",
-            "user_limit",
-            "son_number",
-            "users",
-        ]
-
-    def get_users(self, obj):
-        # Solo usuarios activos asociados al contrato
-        users = UserProfile.objects.filter(contract=obj)
-        return SimpleUserProfileSerializer(users, many=True, context=self.context).data
 
 #  Ajuste para el serializador SimpleUserProfileSerializer
 class SimpleUserProfileSerializer(serializers.ModelSerializer):

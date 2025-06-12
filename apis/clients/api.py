@@ -970,23 +970,20 @@ class SimpleAuthenticateView(ViewSet):
         contracts = user_data.get("contracts", [])
         odoo_contracts = []
 
-        # Flatten Odoo contracts
+        # Obtener todos los contratos desde Odoo
         for odoo_item in odoo_data:
             odoo_contracts.extend(odoo_item.get("contratos", []))
 
-        # Create a lookup dictionary for Odoo contracts by name
-        odoo_contracts_dict = {
-            contract["name"]: contract for contract in odoo_contracts
-        }
+        # Diccionario para hacer lookup por contract_id
+        odoo_contracts_dict = {contract["name"]: contract for contract in odoo_contracts}
 
-        # Enrich each contract in user_data with corresponding Odoo details
+        # Enriquecer contratos existentes sin reemplazar estructura
         for contract in contracts:
             contract_id = contract.get("contract_id")
-            contract["odoo_details"] = odoo_contracts_dict.get(contract_id, None)
+            contract["odoo_details"] = odoo_contracts_dict.get(contract_id)
 
-        user_data["contracts"] = contracts
         return user_data
-
+    
 class AuthenticateNettplusViewSet(ViewSet):
     permission_classes = [AllowAny]
     serializer_class = AuthTokenSerializer

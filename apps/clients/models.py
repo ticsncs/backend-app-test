@@ -347,6 +347,7 @@ class UserProfile(AbstractUser):
         max_length=10,
         choices=HOTSPOT_STATUS_CHOICES,
         default='inactive',
+        null=True,
         verbose_name="Estado de Cuenta Hotspot"
     )
 
