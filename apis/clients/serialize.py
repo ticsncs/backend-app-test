@@ -174,7 +174,9 @@ class SimpleUserProfileSerializer(serializers.ModelSerializer):
             "is_active",
             "father",
             "contract_id",  # Si es una propiedad serializada o calculada
-            "date_joined"
+            "date_joined",
+            "hotspot_account_status",
+            "time_available"
         ]
 
 
@@ -208,6 +210,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     cropping_icon_url300x300 = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
     privacityandterms = serializers.BooleanField(required=False, default=False)
+    hotspot_account = serializers.ChoiceField(
+        choices=[('active', 'Active'), ('inactive', 'Inactive'), ('pending', 'Pending')],
+        default='inactive',
+        required=False
+    )
+    time_available = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -240,6 +248,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_contracts(self, obj):
         contracts = Contract.objects.filter(userprofile=obj)
         return ContractSerializer(contracts, many=True).data
+    
+    #Calcular tiempo disponible por cuenta
+    def get_time_available(self, obj):
+        return 45
 
 
 class ServiceSerializer(serializers.ModelSerializer):

@@ -1384,6 +1384,7 @@ class ContractUserView(APIView):
         ).update(actor=self.request.user)
 
     def get(self, request, contract_id):
+        print("Ingrese al get de contrato")
         try:
             # Obtener el contrato
             contract = Contract.objects.get(contract_id=contract_id)
@@ -1403,6 +1404,7 @@ class ContractUserView(APIView):
             user_data = UserProfileSerializer(
                 users, many=True, context={"request": request}
             ).data
+            print("DATA", user_data)
             return Response(
                 {
                     "contract_id": contract.contract_id,

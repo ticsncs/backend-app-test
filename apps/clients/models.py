@@ -324,6 +324,24 @@ class UserProfile(AbstractUser):
     cedula = models.CharField(
         max_length=15, unique=True, blank=True, null=True, verbose_name="Cédula"
     )
+
+    #Campos para la gestion de cuentas de hotspot
+    HOTSPOT_STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'), 
+        ('pending', 'Pending')
+    ]
+    hotspot_account_status = models.CharField(
+        max_length=10,
+        choices=HOTSPOT_STATUS_CHOICES,
+        default='inactive',
+        verbose_name="Estado de Cuenta Hotspot"
+    )
+
+    time_available = models.IntegerField(
+        default=0, verbose_name="Tiempo Disponible (en minutos)"
+    )
+
     history = HistoricalRecords()
 
     def get_unread_notifications(self):
