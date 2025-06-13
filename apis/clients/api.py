@@ -914,6 +914,7 @@ class SimpleAuthenticateView(ViewSet):
                     "token": token.key,
                     "unread_notifications": user.get_unread_notifications(),
                     "user": user_data,
+                    "status": HTTP_200_OK
                 },
                 status=HTTP_201_CREATED,
             )
