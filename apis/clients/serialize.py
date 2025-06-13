@@ -147,6 +147,33 @@ class SimpleContractSerializer(serializers.ModelSerializer):
         print("✅ Serializer ejecutado para:", instance.contract_id)
         return data
 
+
+
+class SimpleContractSerializer2(serializers.ModelSerializer):
+    
+    planInternet = serializers.CharField(source="planInternet.__str__", read_only=True)
+    class Meta:
+        model = Contract
+        fields = [
+            "contract_id",
+            "addressComplete",
+            "email",
+            "geolatitude",
+            "geolongitude",
+            "name",
+            "planInternet",
+            "productInternet",
+            "user_limit",
+            "users"
+        ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        print("✅ Serializer ejecutado para:", instance.contract_id)
+        return data
+
+
+
 class FatherUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile

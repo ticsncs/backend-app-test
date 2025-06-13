@@ -41,12 +41,13 @@ from apis.clients.serialize import (AuthTokenSerializer, ContractSerializer,
     HotspotAccountSerializer, InvoiceSerializer, MassPointsLoadSerializer, PaymentMethodSerializer,
     PaymentPromiseSerializer, PuntosGanadosSerializer, RatingQuestionSerializer,
     ReferralSerializer, RegisterTicketSerializer, SendMailRegisteredUserSerializer,
-    ServiceSerializer, SimpleContractSerializer, SlideActionSerializer, SliderSecondSerializer,
-    SliderSerializer, SpeedHistorySerializer, SupportRatingRequestSerializer, SupportSerializer,
+    ServiceSerializer, SimpleContractSerializer, SimpleContractSerializer2,
+    SimpleUserProfileSerializer, SlideActionSerializer, SliderSecondSerializer, SliderSerializer,
+    SpeedHistorySerializer, SupportRatingRequestSerializer, SupportSerializer,
     TicketSearchSerializer, TransactionRollbackSerializer, TransactionSerializer,
     TransferPointsSerializer, UserGroupSerializer, UserProfileSerializer,
     UserProfileSerializerLite, WifiConnectionLogSerializer, WifiPointSerializer,
-    WifiPointSerializerAll, SimpleUserProfileSerializer)
+    WifiPointSerializerAll)
 from apps.clients.models import (
     WifiPoint,
     Service,
@@ -1411,7 +1412,7 @@ class AllUsersContracts(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            serializer = SimpleContractSerializer(contracts, many=True)
+            serializer = ContractSerializer(contracts, many=True)
             # Agregar datos de usuario al resultado
             user_data = UserProfileSerializer(user, context={"request": request}).data
 
