@@ -38,12 +38,22 @@ from apps.clients.models import (
     PointsCategory,
     PointsByPlanCategory,
     WifiConnectionLog,
+    WifiAccount
 )
 
 admin.site.site_title = "Nettplus"
 admin.site.site_header = "NETTPLUS"
 admin.site.index_title = "Administración de Nettplus"
 
+class WifiAccountInline(admin.TabularInline):
+    model = WifiAccount
+    extra = 0
+
+@admin.register(WifiAccount)
+class WifiAccountAdmin(ModelAdmin, ImportExportModelAdmin):
+    list_display = ("id", "contract", "user", "status", "last_connection")
+    search_fields = ("contract__contract_id", "user__username")
+    list_filter = ("status", "contract")
 
 @admin.register(InternetPlan)
 class InternetPlanAdmin(ModelAdmin, ImportExportModelAdmin):
@@ -87,10 +97,8 @@ class ContractAdminClass(ModelAdmin, ImportExportModelAdmin):
     resource = ContractResource
     search_fields = ("contract_id",)
     list_display = ("contract_id", "get_son_number", "planInternet", "userprofile")
-    list_filter = (
-        "typeService",
-        "typePlan",
-    )
+    list_filter = ("typeService", "typePlan")
+    inlines = [WifiAccountInline]  # ← aquí se incluye
 
     @admin.display(description="Nro. Usuarios Hijos")
     def get_son_number(self, obj):

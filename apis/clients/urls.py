@@ -31,7 +31,9 @@ from apis.clients.api import (
     TransferPointsViewSet,
     WifiConnectionLogViewSet,
     MassPointsLoadView,
-    SimpleAuthenticateView
+    SimpleAuthenticateView,
+    GetPlanInternetForId,
+    WifiAccountsByContractView
 
 )
 from apps.clients.views import blank_page
@@ -55,6 +57,9 @@ urlpatterns = [
     path("payment-promise/", PaymentPromiseApiView.as_view(), name="payment-promise"),
     path("testiframe/", blank_page, name="blank_page"),
     path("masspointsload/", MassPointsLoadView.as_view(), name="mass_points_load"),
+    path('contract/<str:contract_id>/wifi-accounts/',WifiAccountsByContractView.as_view({'get': 'list'}),
+        name='wifi-accounts-by-contract'
+    ),
 ]
 # END ODOO URLS
 routers.register(r"auth", SimpleAuthenticateView, basename="auth")
@@ -63,6 +68,9 @@ routers.register(
 )
 routers.register(r"auth/v2", AuthenticateViewSetToken, basename="auth-v2")
 
+
+##Planes Internet
+routers.register(r'plan-internet', GetPlanInternetForId, basename='plan-internet')
 
 
 ##URL DE CORREO

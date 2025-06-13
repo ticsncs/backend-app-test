@@ -29,7 +29,10 @@ from apps.clients.models import (
     WifiConnectionLog,
     MassPointsLoad,
     PointsCategory,
+    InternetPlan,
+    WifiAccount
 )
+
 
 
 # ODOO URLS
@@ -133,6 +136,7 @@ class SimpleContractSerializer(serializers.ModelSerializer):
         fields = [
             "contract_id",
             "addressComplete",
+            "odoo_id_contract",
             "email",
             "geolatitude",
             "geolongitude",
@@ -146,6 +150,8 @@ class SimpleContractSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         print("✅ Serializer ejecutado para:", instance.contract_id)
         return data
+    
+
 
 class SimpleContractSerializer2(serializers.ModelSerializer):
     users = serializers.SerializerMethodField()
@@ -157,6 +163,7 @@ class SimpleContractSerializer2(serializers.ModelSerializer):
             "telephone",
             "email",
             "contract_id",
+            "planInternet",
             "productInternet",
             "user_limit",
             "son_number",
@@ -197,10 +204,11 @@ class SimpleUserProfileSerializer(serializers.ModelSerializer):
             "image_field",
             "is_active",
             "father",
-            "contract_id",  # Si es una propiedad serializada o calculada
             "date_joined",
             "hotspot_account_status",
-            "time_available"
+            "time_available",
+            "contract_id",
+            "contract"
         ]
 
 
@@ -732,3 +740,17 @@ class SendMailRegisteredUserSerializer(serializers.Serializer):
             to=[email],
         )
         email_msg.send()
+
+
+class ContractPlanInternetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InternetPlan
+        fields = "__all__"
+
+class WifiAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WifiAccount
+        fields = ['id', 'user', 'contract', 'status', 'last_connection']
+
+
+

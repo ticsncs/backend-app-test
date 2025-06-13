@@ -62,10 +62,6 @@ class InternetPlan(models.Model):
     def __str__(self):
         return self.generate_name_speed()
     
-  
-
-
-
 class Contract(models.Model):
     userprofile = models.ForeignKey(
         "UserProfile",
@@ -229,6 +225,8 @@ class Contract(models.Model):
     def save(self, *args, **kwargs):
         actor = kwargs.pop("actor", None)
         previous_limit = self.user_limit
+        was_new = self.pk is None  # Saber si es nuevo antes de guardar
+
         if self.planInternet:
             self.user_limit = self.planInternet.user_limit
         else:
@@ -249,6 +247,11 @@ class Contract(models.Model):
 
         if previous_limit > self.user_limit:
             self.remove_exceeding_users()
+            
+    def create_wifi_accounts(self):
+        wifi_count = self.planInternet.wifi_accounts if self.planInternet else 0
+        for _ in range(wifi_count):
+            WifiAccount.objects.create(contract=self, status='inactive')
 
     def remove_exceeding_users(self):
         users = UserProfile.objects.filter(
@@ -1694,3 +1697,17 @@ class WifiConnectionLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} conectado a {self.wifi_point} - {self.created_at}"
+
+class WifiAccount(models.Model):
+    contract = models.ForeignKey('Contract', on_delete=models.CASCADE, related_name='wifi_accounts')
+    user = models.ForeignKey('UserProfile', on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=[
+        ('active', 'Activa'),
+        ('inactive', 'Disponible'),
+        ('pending', 'Pendiente'),
+    ])
+    last_connection = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Cuenta WiFi"
+        verbose_name_plural = "Cuentas WiFi"

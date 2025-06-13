@@ -46,8 +46,9 @@ from apis.clients.serialize import (AuthTokenSerializer, ContractSerializer,
     SpeedHistorySerializer, SupportRatingRequestSerializer, SupportSerializer,
     TicketSearchSerializer, TransactionRollbackSerializer, TransactionSerializer,
     TransferPointsSerializer, UserGroupSerializer, UserProfileSerializer,
-    UserProfileSerializerLite, WifiConnectionLogSerializer, WifiPointSerializer,
-    WifiPointSerializerAll)
+    UserProfileSerializerLite, WifiConnectionLogSerializer, WifiPointSerializer, ContractPlanInternetSerializer,
+    WifiPointSerializerAll, SimpleUserProfileSerializer,
+    WifiAccount, WifiAccountSerializer)
 from apps.clients.models import (
     WifiPoint,
     Service,
@@ -66,7 +67,7 @@ from apps.clients.models import (
     RatingQuestion,
     TicketRating,
     WifiConnectionLog,
-    MassPointsLoad,
+    InternetPlan,
     PointsByPlanCategory,
     PointsCategory,
 )
@@ -2219,3 +2220,37 @@ class SendMailRegisteredUserViewSet(viewsets.ViewSet):
             serializer.send_email()
             return Response({"message": "Email enviado correctamente!"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class GetPlanInternetForId(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    def retrieve(self, request, pk=None):
+        try:
+            plan = InternetPlan.objects.filter(name=pk).first()
+            if not plan:
+                return Response(
+                    {"error": "Plan de Internet no encontrado."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            serializer = ContractPlanInternetSerializer(plan)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": "Ocurrió un error al buscar el plan.", "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+class WifiAccountsByContractView(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    def list(self, request, contract_id=None):
+        try:
+            contract = Contract.objects.get(contract_id=contract_id)  # ← cambia aquí
+        except Contract.DoesNotExist:
+            return Response({"error": "Contrato no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        accounts = WifiAccount.objects.filter(contract=contract)
+        serializer = WifiAccountSerializer(accounts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
