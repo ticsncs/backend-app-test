@@ -1412,7 +1412,7 @@ class AllUsersContracts(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            serializer = ContractSerializer(contracts, many=True)
+            serializer = SimpleContractSerializer2(contracts, many=True)
             # Agregar datos de usuario al resultado
             user_data = UserProfileSerializer(user, context={"request": request}).data
 
